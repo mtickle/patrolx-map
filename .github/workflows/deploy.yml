@@ -32,10 +32,19 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          VITE_APP_NAME: ${{ secrets.VITE_APP_NAME }}
-          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+          VITE_PATROLX_API_URL: ${{ secrets.VITE_PATROLX_API_URL }}
+          VITE_PATROLX_API_KEY: ${{ secrets.VITE_PATROLX_API_KEY }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_INCIDENT_POLL_MS: ${{ secrets.VITE_INCIDENT_POLL_MS }}
+          VITE_DEFAULT_LAT: ${{ secrets.VITE_DEFAULT_LAT }}
+          VITE_DEFAULT_LNG: ${{ secrets.VITE_DEFAULT_LNG }}
+          VITE_DEFAULT_ZOOM: ${{ secrets.VITE_DEFAULT_ZOOM }}
+          VITE_DEFAULT_COUNTY: ${{ secrets.VITE_DEFAULT_COUNTY }}
+
+
+# --- 4. Map Tile Basemap ---
+# Dark Mode (CartoDB Dark Matter - No API Key Needed)
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
