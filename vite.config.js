@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/patrolx-map/',
+  base: '/',
   plugins: [
     react(),
     tailwindcss(),
