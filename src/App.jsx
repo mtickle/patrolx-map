@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Camera, RefreshCw, AlertTriangle, Cloud, MapPin } from 'lucide-react';
@@ -22,8 +22,34 @@ const ICONS = {
   camera: createDotIcon('#a855f7', 12)
 };
 
-function MapController({ selectedItem }) {
-  const map = useMap();
+function MapController({ selectedItem, onBoundsChange }) {
+  const debounceRef = useRef(null);
+
+  const emitBounds = (mapInstance) => {
+    const b = mapInstance.getBounds();
+    const c = mapInstance.getCenter();
+    onBoundsChange({
+      minLat: Number(b.getSouth().toFixed(5)),
+      maxLat: Number(b.getNorth().toFixed(5)),
+      minLng: Number(b.getWest().toFixed(5)),
+      maxLng: Number(b.getEast().toFixed(5)),
+      lat: Number(c.lat.toFixed(5)),
+      lng: Number(c.lng.toFixed(5))
+    });
+  };
+
+  const map = useMapEvents({
+    moveend: () => {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => emitBounds(map), 350);
+    }
+  });
+
+  useEffect(() => {
+    emitBounds(map);
+    return () => clearTimeout(debounceRef.current);
+  }, [map]);
+
   useEffect(() => {
     if (selectedItem?.latitude && selectedItem?.longitude) {
       map.flyTo([selectedItem.latitude, selectedItem.longitude], 14, {
@@ -32,29 +58,44 @@ function MapController({ selectedItem }) {
       });
     }
   }, [selectedItem, map]);
+
   return null;
 }
 
 export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [countyFilter, setCountyFilter] = useState('Wake');
-  const [sortBy, setSortBy] = useState('time'); // Changed default to time (newest first)
-  //const [sortBy, setSortBy] = useState('severity');
+  const [sortBy, setSortBy] = useState('time');
   const [showCameras, setShowCameras] = useState(true);
   const [activeCamera, setActiveCamera] = useState(null);
+  const [viewportParams, setViewportParams] = useState({
+    lat: 35.7796,
+    lng: -78.6382
+  });
   const tileRefs = useRef({});
 
   const {
     data: incidents,
     isLoading,
-    refetch
+    refetch: refetchIncidents
   } = useApiDataEndpoint('active-incidents', {
     limit: 150,
     county: countyFilter,
     sort: sortBy
   }, 60000);
 
-  const { data: cameras } = useApiDataEndpoint('cameras', { limit: 250 }, 300000);
+  const {
+    data: cameras,
+    refetch: refetchCameras
+  } = useApiDataEndpoint('cameras', {
+    ...viewportParams,
+    limit: 400
+  }, 300000);
+
+  const handleRefreshAll = () => {
+    refetchIncidents();
+    refetchCameras();
+  };
 
   const selectedIncident = incidents.find((inc) => inc.id === selectedId);
 
@@ -78,7 +119,10 @@ export default function App() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MapController selectedItem={selectedIncident} />
+          <MapController
+            selectedItem={selectedIncident}
+            onBoundsChange={setViewportParams}
+          />
 
           {/* Incident Pins */}
           {incidents.map((inc) => (
@@ -146,7 +190,7 @@ export default function App() {
               <p className="text-xs text-slate-400">{incidents.length} Active Events</p>
             </div>
             <button
-              onClick={refetch}
+              onClick={handleRefreshAll}
               className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
               title="Refresh Now"
             >

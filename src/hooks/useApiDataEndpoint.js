@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 export const useApiDataEndpoint = (apiEndPoint, params = {}, refreshIntervalMs = 60000) => {
+
+    console.log(`useApiDataEndpoint called with apiEndPoint: ${apiEndPoint}, params:`, params, `refreshIntervalMs: ${refreshIntervalMs}`);
+
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
