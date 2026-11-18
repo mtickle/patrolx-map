@@ -3,13 +3,14 @@ import axios from 'axios';
 
 export const useApiDataEndpoint = (apiEndPoint, params = {}, refreshIntervalMs = 60000) => {
 
-    console.log(`useApiDataEndpoint called with apiEndPoint: ${apiEndPoint}, params:`, params, `refreshIntervalMs: ${refreshIntervalMs}`);
+    //console.log(`useApiDataEndpoint called with apiEndPoint: ${apiEndPoint}, params:`, params, `refreshIntervalMs: ${refreshIntervalMs}`);
 
     const [data, setData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const API_BASE_URL = import.meta.env.VITE_PATROLX_API_URL || 'http://localhost:3001/api/';
+    //const API_BASE_URL = import.meta.env.VITE_PATROLX_API_URL || 'http://localhost:3001/api/';
+    const API_BASE_URL = import.meta.env.VITE_PATROLX_API_URL ?? '';
     const API_KEY = import.meta.env.VITE_PATROLX_API_KEY;
     const serializedParams = JSON.stringify(params);
 
