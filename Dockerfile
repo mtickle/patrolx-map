@@ -1,8 +1,8 @@
-# Stage 1: Build the Vite application
-FROM node:20-alpine AS builder
+# Stage 1: Build the Vite application natively on the GitHub Actions host ($BUILDPLATFORM)
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 
 # Declare build arguments for Vite environment variables
@@ -29,7 +29,7 @@ ENV VITE_DEFAULT_COUNTY=$VITE_DEFAULT_COUNTY
 
 RUN npm run build
 
-# Stage 2: Serve with Nginx
+# Stage 2: Serve static assets on target platform (linux/arm64) with Nginx
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 80
